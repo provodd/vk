@@ -1,0 +1,25 @@
+{
+    "name": "telegram-bot/example-bot",
+    "type": "project",
+    "description": "PHP VK Bot",
+    "keywords": ["vk", "bot"],
+    "license": "MIT",
+    "homepage": "https://github.com/provodd/vk_bot",
+    "authors": [
+        {
+            "name": "Provodd",
+            "homepage": "https://github.com/provodd",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "orhanerday/open-ai": "^4.8",
+        "gabordemooij/redbean": "dev-master",
+        "vkcom/vk-php-sdk": "^5.131"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "App"
+        }
+    }
+}
