@@ -36,14 +36,12 @@ if (isset($_POST)) {
                 try {
                     $data['id'] = $id;
                     $host = "https://$_SERVER[HTTP_HOST]";
-                    $url = $host."/vk/curl/chatbot.php";
+                    $url = $host . "/vk/curl/chatbot.php";
                     $curl = new Curl($url, $data, 3);
                     $curl_result = $curl->exec();
 
-                    LogService::test(['res' => $curl_result ?? '']);
-
                 } catch (Exception $ex) {
-                    LogService::test(['err' => $ex->getMessage()]);
+                    //LogService::test(['err' => $ex->getMessage()]);
                 }
 
                 break;
