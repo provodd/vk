@@ -276,7 +276,7 @@ class VictorinaService
                 $msg = "{$prefix} {$question} \n В ответе {$strlen} букв.";
                 break;
             case 'succeed':
-                $user = $this->user[0]['first_name'] . ' ' . $this->user[0]['last_name'];
+                $user = '[id' . $this->user[0]['id'] . '|' . $this->user[0]['first_name'] . ']';
                 $question_cost = VictorinaDTO::NUMBER_OF_POINTS;
                 $rating = $this->getUserRating($this->id_user);
                 $points = $this->getUserPoints($this->id_user);
