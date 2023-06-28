@@ -1,10 +1,10 @@
 {
-    "name": "telegram-bot/example-bot",
+    "name": "php-vk/example-services",
     "type": "project",
     "description": "PHP VK Bot",
     "keywords": ["vk", "bot"],
     "license": "MIT",
-    "homepage": "https://github.com/provodd/vk_bot",
+    "homepage": "https://github.com/provodd/vk",
     "authors": [
         {
             "name": "Provodd",

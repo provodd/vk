@@ -3,7 +3,7 @@
 Набор мини-сервисов и ботов в ВК для собственных нужд
 
 ```bash
-$ git clone https://github.com/provodd/vk_bot.git
+$ git clone https://github.com/provodd/vk.git
 $ composer install
 ```
 Далее переименовываем `config.example.php` на `config.php` и заполняем
