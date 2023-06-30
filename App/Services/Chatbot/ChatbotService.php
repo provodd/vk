@@ -60,7 +60,7 @@ class ChatbotService
 
             $count = $this->getInvalidCharactersCount($text);
 
-            if ($count > 10) {
+            if ($count > 5) {
                 throw new \Exception('Некорректные символы в ответе');
             }
 
@@ -71,8 +71,11 @@ class ChatbotService
             if (mb_strlen($text) > 220) {
                 $text = ChatbotDTO::RANDOM_ANSWERS[rand(0, 250)] ?? null;
             }
+
             if (isset($text) and $text !== '') {
-                $this->sendMessage($text);
+                if (rand(0,10)>5){
+                    $this->sendMessage($text);
+                }
             }
 
         } catch (\Exception $ex) {
