@@ -16,7 +16,7 @@ class PostService
     {
         $this->config = $config;
         $this->vk = new VKApiClient();
-        $this->rand = rand(50, 20000);
+        $this->rand = rand(50, 3000);
     }
 
     public function getPosts($limit = 10)

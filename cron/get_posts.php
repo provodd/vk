@@ -9,4 +9,4 @@ use App\Services\Posts\PostService;
 DatabaseService::instance();
 
 $postService = new PostService($config);
-$postService->getPosts($_GET['limit'] ?? 5);
+$postService->getPosts($_GET['limit'] ?? 10);
