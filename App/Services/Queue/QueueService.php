@@ -26,7 +26,7 @@ class QueueService
 
     public function add($data)
     {
-        $from = $this->data['object']['user_id'] ?? $this->data['object']['from_id'] ?? $this->data['object']['message']['from_id'] ?? null;
+        $from = $data['object']['user_id'] ?? $data['object']['from_id'] ?? $data['object']['message']['from_id'] ?? null;
         if (isset($from)) {
             $fromGroup = mb_stripos($from, '-');
             if (in_array($data['type'], self::available_types) and $fromGroup === false) {
