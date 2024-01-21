@@ -75,6 +75,11 @@ class VictorinaService
                 break;
             //если нет текущей викторины и поступила команда на старт игры
             case (!isset($this->victorina) and mb_strtolower($this->text) === VictorinaDTO::START_COMMAND) :
+                if (!$this->checkAttempts()){
+                    $msg = $this->generateMessage('nomore');
+                    $this->sendMessage($msg);
+                    break;
+                }
                 if ($this->createVictorina()) {
                     $this->changeStatus('started');
                     $msg = $this->generateMessage('started');
@@ -207,6 +212,21 @@ class VictorinaService
         return DatabaseService::findOne(VictorinaDTO::VICTORINA_TABLE, 'active=? AND peer_id=? AND group_id=?', array('1', $this->peer_id, $this->group_id));
     }
 
+    //что бы не создавали слишком много
+    public function checkAttempts(){
+        $r = DatabaseService::getAll('select count(*) as count from ' . VictorinaDTO::VICTORINA_TABLE . ' 
+        where peer_id = ' . $this->peer_id . ' 
+        and group_id = ' . $this->group_id . '
+        and created_by = ' . $this->id_user . '
+        and date >= CURRENT_DATE()'
+        );
+        $count = (int)$r[0]['count'];
+        if ($count > VictorinaDTO::MAX_COUNT){
+            return false;
+        }
+        return true;
+    }
+
     //создаем виктарину, если нет текущей
     public function createVictorina()
     {
@@ -285,6 +305,14 @@ class VictorinaService
                 break;
             case 'overdue':
                 $msg = 'Викторина осталась без ответа. Правильный ответ: ' . $answer . '';
+                break;
+            case 'nomore':
+                $rating = DatabaseService::findOne(VictorinaDTO::VICTORINA_RATING_TABLE, 'id_user=?', array($this->id_user));
+                $msg = 'Слишком много попыток за сегодня, попробуйте позже';
+                if ($rating){
+                    $user = '[id' . $this->id_user . '|' . $rating->first_name . ']';
+                    $msg = $user . ', ' .'слишком много попыток за сегодня, попробуйте позже';
+                }
                 break;
             case 'clue':
                 $clue = $this->getClue($this->victorina);

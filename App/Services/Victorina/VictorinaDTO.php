@@ -22,6 +22,9 @@ class VictorinaDTO
     //интервал подсказок в секундах
     const CLUE_INTERVAL = 120;
 
+    //Максимальное количество созданных викторин одним пользователем за день
+    const MAX_COUNT = 15;
+
     const START_MESSAGE_PREFIXES = [
         'Простейший вопрос. ',
         'Попробуйте угадать! ',
