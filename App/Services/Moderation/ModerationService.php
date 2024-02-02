@@ -65,7 +65,7 @@ class ModerationService
     public function checkPostCount($id_user): bool
     {
         $count = LogService::getLogsCountByUser($id_user);
-        if ($count > 5) {
+        if ($count > 7) {
             throw new \Exception('Слишком много постов от этого пользователя');
         }
         return true;

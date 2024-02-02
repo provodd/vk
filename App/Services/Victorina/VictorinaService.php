@@ -76,6 +76,9 @@ class VictorinaService
             //если нет текущей викторины и поступила команда на старт игры
             case (!isset($this->victorina) and mb_strtolower($this->text) === VictorinaDTO::START_COMMAND) :
                 if (!$this->checkAttempts()){
+                    if ($this->id_user=='751439672x'){
+                        break;
+                    }
                     $msg = $this->generateMessage('nomore');
                     $this->sendMessage($msg);
                     break;
