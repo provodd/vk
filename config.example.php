@@ -27,5 +27,7 @@ return [
         'password' => '',
         'database' => '',
     ],
-
+    'antispam_service' => [
+        'access_token' => ''
+    ]
 ];
