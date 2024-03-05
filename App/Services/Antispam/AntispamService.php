@@ -42,16 +42,16 @@ class AntispamService
     {
         try {
             $messages_count = $this->getMessagesCount();
-            
+
             if (!$this->checkStopWords() AND $messages_count<3) {
-                throw new \Exception('Фейк, спам, бот или просто нехороший человек. Кик');
+                throw new \Exception('Фейк, спам, бот или просто нехороший человек');
             }
 
             $this->upsertUser();
 
         } catch (\Exception $ex) {
             $this->removeUserFromChat();
-            $this->sendMessage($ex->getMessage());
+            //$this->sendMessage($ex->getMessage());
         }
 
     }
@@ -118,8 +118,11 @@ class AntispamService
 
     public function checkStopWords(): bool
     {
-        if (in_array(strtolower($this->text), AntispamDTO::STOP_WORDS)) {
-            return false;
+        foreach(AntispamDTO::STOP_WORDS as $word){
+            $pos = mb_strpos($this->text, $word);
+            if ($pos!==false){
+                return false;
+            }
         }
         return true;
     }
