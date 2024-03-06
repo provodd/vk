@@ -107,7 +107,7 @@ class AntispamService
             $user_chat->first_name = $response[0]['first_name'] ?? '';
             $user_chat->last_name = $response[0]['last_name'] ?? '';
             $user_chat->birthdate = $response[0]['bdate'] ?? '';
-            $user_chat->city = $city ?? $town;
+            $user_chat->city = $city ?? $town ?? '';
             $user_chat->sex = $response[0]['sex'] ?? '';
             $user_chat->photo = $response[0]['photo_400_orig'] ?? '';
             $user_chat->messages_count = $messages_count;
