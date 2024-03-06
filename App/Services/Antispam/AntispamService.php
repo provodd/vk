@@ -40,9 +40,9 @@ class AntispamService
      */
     public function check()
     {
-        try {
-            $messages_count = $this->getMessagesCount();
+        $messages_count = $this->getMessagesCount();
 
+        try {
             if (!$this->checkStopWords() AND $messages_count<3) {
                 throw new \Exception('Фейк, спам, бот или просто нехороший человек');
             }
@@ -51,16 +51,26 @@ class AntispamService
 
         } catch (\Exception $ex) {
             $this->removeUserFromChat();
+            $this->changeLogStatus($messages_count);
+            $this->deleteMessage();
             //$this->sendMessage($ex->getMessage());
         }
+    }
 
+    public function changeLogStatus($messages_count){
+        $log = DatabaseService::findOne('logs', 'id_user=? AND id_group=? AND id_event=? AND created_at >= CURRENT_DATE()',
+            array($this->id_user,$this->data['group_id'],$this->data['event_id']));
+        $log = DatabaseService::load('logs', $log->id);
+
+        $log->status = 'Исключен из чата за спам. Количество сообщений: '.$messages_count;
+        DatabaseService::store($log);
     }
 
     public function getMessagesCount(){
-        $user = DatabaseService::findOne('chat_users', 'id_user=? AND id_group=? AND id_peer=?', array($this->id_user,$this->data['group_id'],$this->data['object']['message']['peer_id']));
+        $user = DatabaseService::findOne('chat_users', 'id_user=? AND id_group=? AND id_peer=?',
+            array($this->id_user,$this->data['group_id'],$this->data['object']['message']['peer_id']));
 
-        if (isset($user->message_count)) return $user->messages_count;
-        return 0;
+        return $user->messages_count ?? 0;
     }
 
     public function upsertUser()
@@ -106,6 +116,16 @@ class AntispamService
             $user_chat->created_at = date('Y-m-d H:i:s');
             DatabaseService::store($user_chat);
         }
+    }
+
+    public function deleteMessage()
+    {
+        return $this->vk->messages()->delete($this->token, array(
+            'group_id' => $this->data['group_id'],
+            "peer_id" => $this->data['object']['message']['peer_id'],
+            'delete_for_all' => 1,
+            'cmids' => $this->data['object']['message']['conversation_message_id']
+        ));
     }
 
     public function removeUserFromChat()
