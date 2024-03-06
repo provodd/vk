@@ -43,7 +43,7 @@ class AntispamService
         $messages_count = $this->getMessagesCount();
 
         try {
-            if (!$this->checkStopWords() AND $messages_count<3) {
+            if ((!$this->checkStopWords() OR $this->checkEnglish()) AND $messages_count<3) {
                 throw new \Exception('Фейк, спам, бот или просто нехороший человек');
             }
 
@@ -134,6 +134,15 @@ class AntispamService
             'user_id' => $this->id_user,
             "chat_id" => $this->peer_id * 1 - 2000000000,
         ));
+    }
+
+    public function checkEnglish(): bool
+    {
+        $chr_en = "a-zA-Z0-9\s`~!@#$%^&*()_+-={}|:;<>?,.\/\"\'\\\[\]";
+        if (preg_match("/^[$chr_en]+$/", $this->text)) {
+            return true;
+        }
+        return false;
     }
 
     public function checkStopWords(): bool
