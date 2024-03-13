@@ -10,6 +10,7 @@ use App\Services\Log\LogService;
 use App\Services\Queue\QueueService;
 use App\Services\Victorina\VictorinaService;
 use App\Services\Antispam\AntispamService;
+use App\Services\ChatAdministration\ChatAdministrationService;
 use App\Services\Chatbot\ChatbotService;
 use App\Actions\Curl;
 
@@ -33,8 +34,11 @@ if (isset($_POST)) {
                 $victorina->check();
                 break;
             case 'ekb':
-                $victorina = new AntispamService($data, $config, $id);
-                $victorina->check();
+                $antispam = new AntispamService($data, $config, $id);
+                $antispam->check();
+
+                $adm = new ChatAdministrationService($data, $config, $id);
+                $adm->check();
                 break;
             case 'chat':
 
