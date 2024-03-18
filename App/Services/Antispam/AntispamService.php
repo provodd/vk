@@ -40,82 +40,84 @@ class AntispamService
      */
     public function check()
     {
-        $messages_count = $this->getMessagesCount();
+        if ($this->data['type'] === 'message_new') {
+            $messages_count = $this->getMessagesCount();
 
-        try {
-            if ((!$this->checkStopWords() OR $this->checkEnglish()) AND $messages_count<3) {
-                throw new \Exception('Фейк, спам, бот или просто нехороший человек');
+            try {
+                if ((!$this->checkStopWords() or $this->checkEnglish()) and $messages_count < 3) {
+                    throw new \Exception('Фейк, спам, бот или просто нехороший человек');
+                }
+
+                $this->upsertUser();
+
+            } catch (\Exception $ex) {
+                $this->removeUserFromChat();
+                $this->changeLogStatus($messages_count);
+                $this->deleteMessage();
+                //$this->sendMessage($ex->getMessage());
             }
-
-            $this->upsertUser();
-
-        } catch (\Exception $ex) {
-            $this->removeUserFromChat();
-            $this->changeLogStatus($messages_count);
-            $this->deleteMessage();
-            //$this->sendMessage($ex->getMessage());
         }
     }
 
-    public function changeLogStatus($messages_count){
+    public function changeLogStatus($messages_count)
+    {
         $log = DatabaseService::findOne('logs', 'id_user=? AND id_group=? AND id_event=? AND created_at >= CURRENT_DATE()',
-            array($this->id_user,$this->data['group_id'],$this->data['event_id']));
+            array($this->id_user, $this->data['group_id'], $this->data['event_id']));
         $log = DatabaseService::load('logs', $log->id);
 
-        $log->status = 'Исключен из чата за спам. Количество сообщений: '.$messages_count;
+        $log->status = 'Исключен из чата за спам. Количество сообщений: ' . $messages_count;
         DatabaseService::store($log);
     }
 
-    public function getMessagesCount(){
+    public function getMessagesCount()
+    {
         $user = DatabaseService::findOne('chat_users', 'id_user=? AND id_group=? AND id_peer=?',
-            array($this->id_user,$this->data['group_id'],$this->data['object']['message']['peer_id']));
+            array($this->id_user, $this->data['group_id'], $this->data['object']['message']['peer_id']));
 
         return $user->messages_count ?? 0;
     }
 
     public function upsertUser()
     {
-        if ($this->data['type'] === 'message_new') {
-            $user = DatabaseService::findOne('chat_users', 'id_user=? AND id_group=? AND id_peer=?', array($this->id_user,$this->data['group_id'],$this->data['object']['message']['peer_id']));
-            $response = $this->vk->users()->get($this->token, array(
-                'user_ids' => array($this->id_user),
-                'fields' => array('city, home_town, universities', 'bdate', 'photo_200', 'photo_400_orig', 'photo_id', 'sex', 'country', 'city', 'home_town', 'about')
-            ));
+        $user = DatabaseService::findOne('chat_users', 'id_user=? AND id_group=? AND id_peer=?', array($this->id_user, $this->data['group_id'], $this->data['object']['message']['peer_id']));
+        $response = $this->vk->users()->get($this->token, array(
+            'user_ids' => array($this->id_user),
+            'fields' => array('city, home_town, universities', 'bdate', 'photo_200', 'photo_400_orig', 'photo_id', 'sex', 'country', 'city', 'home_town', 'about')
+        ));
 
-            if (isset($response[0]['home_town'])) {
-                if (!empty($response[0]['home_town'])) {
-                    $town = $response[0]['home_town'];
-                }
+        if (isset($response[0]['home_town'])) {
+            if (!empty($response[0]['home_town'])) {
+                $town = $response[0]['home_town'];
             }
-            if (isset($response[0]['city'])) {
-                if (!empty($response[0]['city'])) {
-                    $city = $response[0]['city']['title'];
-                }
-            }
-            $messages_count = 1;
-            if ($user) {
-                $user_chat = DatabaseService::load('chat_users', $user->id);
-                $messages_count = $user_chat->messages_count + 1;
-            } else {
-                $user_chat = DatabaseService::xdispense('chat_users');
-            }
-
-            $user_chat->id_user = $this->id_user;
-            $user_chat->id_group = $this->data['group_id'] ?? '';
-            $user_chat->id_peer = $this->data['object']['message']['peer_id'] ?? '';
-
-            $user_chat->first_name = $response[0]['first_name'] ?? '';
-            $user_chat->last_name = $response[0]['last_name'] ?? '';
-            $user_chat->birthdate = $response[0]['bdate'] ?? '';
-            $user_chat->city = $city ?? $town ?? '';
-            $user_chat->sex = $response[0]['sex'] ?? '';
-            $user_chat->photo = $response[0]['photo_400_orig'] ?? '';
-            $user_chat->messages_count = $messages_count;
-            $user_chat->user = json_encode($response);
-            $user_chat->payload = json_encode($this->data);
-            $user_chat->created_at = date('Y-m-d H:i:s');
-            DatabaseService::store($user_chat);
         }
+        if (isset($response[0]['city'])) {
+            if (!empty($response[0]['city'])) {
+                $city = $response[0]['city']['title'];
+            }
+        }
+        $messages_count = 1;
+        if ($user) {
+            $user_chat = DatabaseService::load('chat_users', $user->id);
+            $messages_count = $user_chat->messages_count + 1;
+        } else {
+            $user_chat = DatabaseService::xdispense('chat_users');
+        }
+
+        $user_chat->id_user = $this->id_user;
+        $user_chat->id_group = $this->data['group_id'] ?? '';
+        $user_chat->id_peer = $this->data['object']['message']['peer_id'] ?? '';
+
+        $user_chat->first_name = $response[0]['first_name'] ?? '';
+        $user_chat->last_name = $response[0]['last_name'] ?? '';
+        $user_chat->birthdate = $response[0]['bdate'] ?? '';
+        $user_chat->city = $city ?? $town ?? '';
+        $user_chat->sex = $response[0]['sex'] ?? '';
+        $user_chat->photo = $response[0]['photo_400_orig'] ?? '';
+        $user_chat->messages_count = $messages_count;
+        $user_chat->user = json_encode($response);
+        $user_chat->payload = json_encode($this->data);
+        $user_chat->created_at = date('Y-m-d H:i:s');
+        DatabaseService::store($user_chat);
     }
 
     public function deleteMessage()
@@ -138,7 +140,7 @@ class AntispamService
 
     public function checkEnglish(): bool
     {
-        $chr_en = "a-zA-Z0-9\s`~!@#$%^&*()_+-={}|:;<>?,.\/\"\'\\\[\]";
+        $chr_en = "a-zA-Z\s`~!@#$%^&*()_+-={}|:;<>?,.\/\"\'\\\[\]";
         if (preg_match("/^[$chr_en]+$/", $this->text)) {
             return true;
         }
@@ -147,9 +149,9 @@ class AntispamService
 
     public function checkStopWords(): bool
     {
-        foreach(AntispamDTO::STOP_WORDS as $word){
+        foreach (AntispamDTO::STOP_WORDS as $word) {
             $pos = mb_strpos($this->text, $word);
-            if ($pos!==false){
+            if ($pos !== false) {
                 return false;
             }
         }
