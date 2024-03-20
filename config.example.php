@@ -1,5 +1,4 @@
 <?php
-
 return [
     'chatbot_service' => [
         'access_token' => 'vk1.a..',
