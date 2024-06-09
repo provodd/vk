@@ -27,6 +27,10 @@ class ModerationService
 
         foreach ($queues as $queue) {
             try {
+                if (empty($queue['text']) OR mb_strlen($queue['text'])===0){
+                    throw new \Exception('Пустой текст');
+                }
+
                 //на всякий случай, проверяем что автор поста - человек, а не группа
                 if (!is_null($queue['user']) and mb_stripos($queue['user'], '-') === false) {
                     $response = $this->getUserDetails(array($queue['user']));
